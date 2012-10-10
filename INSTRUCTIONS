@@ -1,0 +1,123 @@
+Easy Linux Security (ELS) Manual
+Revision: 1
+Date: September 01, 2005
+Author: Richard Gannon <rich@richgannon.net> and Martynas Bendorius <martynas@e-vaizdas.net>
+
+This manual was written for use with ELS version 1.0.0.  While some functions may be the same in future versions, you should always make sure you have an up to date copy of this manual, as well as ELS.
+
+Section 1 - About ELS
+Easy Linux Security (ELS) was created by Rich Gannon in February of 2005 to help make the management of multiple servers less of a haslte.  After several weeks of development with just a basic knowledge of Shell programming, version 0.2.0 was the first release made available to the public as an open source project.  With several functions, from installing a few programs, to mounting partitions with special options with fstab, it wasn't very popular, but worked most of the time in the environment it was originally developed on and for (Red Hat Enterprise 3).  Once some interest was put into the use of this script, the development started to see new features almost daily for weeks.  To date, the ELS project is still focused primarily on server security and some optimizations on Red Hat based Linux distributions, including Red Hat Enterprise, Fedora, and CentOS, and works best on cPanel enabled servers.
+
+Section 2 - Before You Begin
+Section 2.1 - Requirements
+The following binaries must be installed and executable before running ELS:
+- /usr/bin/wget
+- /usr/bin/replace
+- /bin/grep
+- /usr/bin/cut
+- /bin/tar
+- /bin/cat
+- /usr/bin/md5sum
+- /usr/bin/tail
+- /bin/awk
+
+If one of the above binaries are not available or moved/renamed, ELS will exit when it runs Binary checks.  If one of the above files are moved or renamed from the default locations, you can edit that in the ELS file before executing.  To change a location, simply open the file 'els.sh' in your favorite text editor and change the line of the above binary.  You will see the whole list near the header of the file.
+
+For example, if 'wget' has been renamed to 'downloadmeafile' you will change the line:
+
+WGET=/usr/bin/wget;
+
+to:
+
+WGET=/usr/bin/downloadmeafile;
+
+Once changed, save the file, and the Binary check for that item should follow through normally when ELS is executed.
+
+Section 2.2 - What precautions should I take?
+ELS changes several files that may cause a broken system if something is set incorrectly.  Although ELS will create a backup of these important files, you may wish to take your own backup just incase.
+
+The following files are edited by ELS:
+/etc/fstab
+/etc/ssh/sshd_config
+/etc/xinetd.d/telnet
+/usr/local/apache/conf/modsec.conf (only for cPanel servers with mod_security installed)
+
+/etc/fstab is one of the more dangerous files to mess around with, which is why there have been many checks to make sure the functions in ELS edit this properly.
+
+If you have /tmp mounted with fstab, this line will be edited to include two new options: 'noexec' and 'nosuid'.  These options prevent possible exploits from being executed in the /tmp directory.  The mountpoint for /dev/shm will also have the same changes in the fstab.
+
+/var/tmp will also be mounted in the fstab, and this will create a new line at the bottom of the file.
+
+/etc/ssh/sshd_config has only one small change to the file, which changes the default line, "#Protocol 2,1" to "Protocol 2".  This forces the use of SSH Protocol 2 which is more secure, and most SSH clients already support this protocol, anyway.
+
+/etc/xinetd.d/telnet, if it exists, also has only one small change to it.  It changes the line "disable = no" to "disable = yes".  If the line does not exist in the file, it will add it.
+
+If you have a cPanel enabled server and run MySQL 4.0, you have the choice of running the MySQL upgrader.  If you wish to use this to upgrade to MySQL 4.1, it is highly recommended to backup your MySQL databases.  The easiest way to do this is to copy the MySQL data directory (default is /var/lib/mysql).  You can copy this whole directory with the following command:
+
+cd /var/lib/mysql; cp -R * /var/lib/mysql.bak
+
+Section 3 - Using ELS
+Section 3.1 - What options are available to use?
+You can view all the options with a short description of each with the command /usr/local/els/els.sh --help
+
+Section 3.2 - What will I be asked when running ELS?
+ELS is made to be mostly automated, however some user intervention is required to make best use of some functions of ELS.
+
+The first thing you will need to enter is your email address.  This email address is used for nightly cronjobs for RKHunter and CHKROOTKIT scans.  You can, alternitavely, enter the email address 'root' which will go to the email set for root in cPanel (if installed).
+
+The next question is not required to be entered, but highly recommended if you have a static IP at your home or workplace.  This will ask for your IP of your home or office or wherever you're working from.  If you do not have a static IP, consider getting one from your ISP, and leave the answer blank in ELS.  This IP is entered into two files to prevent lockout.  The files are /etc/apf/allow_hosts.rules and /usr/local/bfd/ignore.hosts.  You can enter other IPs you may wish to enter in those files by manually editing them with a text editor at a later time.
+
+The following two questions are only available if you have cPanel installed and the programs 'up2date' and/or 'yum' installed.  Generally, a Red Hat Enterprise server will not have yum installed, however CentOS and Fedora Core should have both installed.  If you choose to have ELS modify the configuration for up2date and it asks the same question for yum, you should also make sure you have ELS modify this configuration as well.
+
+The next option is only available to cPanel users to upgrade to MySQL 4.1.  You will only be asked if MySQL 4.1 is not selected in WHM Tweak Settings.
+
+Next is also just for cPanel users.  You will be asked if you want ELS to run the cPanel update scripts.  This option will be forced if MySQL was selected to be upgraded to 4.1.
+
+Later in the ELS program, you will be asked if you would like to modify the MySQL configuration.  Like many of them before, this is only available for cPanel servers.  If you have made significant changes to /etc/my.cnf, such as changed the data directory, you should select no.  This works for both MySQL 4.0 and 4.1 installations.
+
+The last option you will choose for is available for cPanel an no-cPanel users.  PHP is required to already be installed and will only be displayed if PHP is installed.  This option is to instal (or update) Zend Optimizer.  Currently, it only works on i386 based Linux distributions.  this is recommended to be installed as Zend Optimizer can increase PHP performance by up to 40%.
+
+Section 4 - What does each function of ELS do to my server?
+ELS is broken down into several different functions or parts.  Before ELS performs any task with installing, upgrading, or changing anything on your server, you are prompted if you would like to do so.  If you want to skip a part, all you have to do is press the "N" key when prompted.
+
+This manual will now explain in some more detail what each function does when running ELS.
+
+Section 4.1 - up2date and yum configuration editors (cPanel only)
+up2date is the native Red Hat program to update and install RPM packages.  Yum is a common and very useful program which does the same task, but for machines that are not subscribed to the Red Hat Network.  Yum is commonly used with CentOS, Fedora and non-Enterprise Red Hat distributions.  The problem with running these on a cPanel server is that several packages overwrite cPanel's software versions, thus casuing several compatability issues.  To help prevent against this situation, the up2date and/or yum configuration files can be modified to "skip" packages that need to be updated.  You can still update these packages by simply adding the "-f" option with up2date or the "--force" option with yum.
+
+Section 4.2 - MySQL 4.1 upgrade (cPanel only)
+By default, MySQL 4.0.x is installed on cPanel servers.  ELS gives you a simple option to upgrade to MySQL 4.1.x.  Mysql 4.1 offers some performance enahncements and new functions.  You can upgrade to MySQL 4.1 at any time, however going back from MySQL 4.1 to 4.0 is much more difficult.
+
+Section 4.3 - cPanel update (cPanel only)
+This is just a simple function which runs the cPanel script to ensure that all your cPanel software is up to date.
+
+Note: This will automatically run if you select to have MySQL upgraded to 4.1 in the previous part.
+
+Section 4.4 - Fixndc (cPanel only)
+RNDC is the means through with cPanel inserts and reloads zones into the named (BIND) nameserver without having to restart everytime it is modified.  Upon initial cPanel install, this is left non-functional.  cPanel did make a script, however, to fix the problem.  This function only runs that script as necessary and ensures RNDC is configured and is working properly.
+
+Section 4.5 - cPanel Tweak Settings (cPanel only)
+In WHM (Web Host Manager), the Administrator side of cPanel, there is a page to "Tweak Settings" as well as a page to "Tweak Security".  This function tweaks both to enhance security and performance.  If you set these as you already prefer, than it is not necessary to run this part, however recommended, especially for initial cPanel setup.
+
+Section 4.6 - Root Kit Hunter
+Root Kit Hunter is a very useful program for sniffing out Root Kits in linux systems.  You can run it with a cronjob or manually in the console.  If you choose to have the cronjob automatically installed, RKHunter will run nightly and send to the email specified when starting the program.
+
+Section 4.7 - Advanced Policies Firewall (APF)
+APF is a useful and powerful open-source firewall.  It uses IPTABLES to insert rules bases on ports, IPs, and other settings.  ELS installed APF in the default state if you have no control panel installed.  If you have cPanel or Plesk installed, the necessary ports will be opened automatically.  You may still need to modify the configuration file (/etc/apf/conf.apf) for your own settings.  If you had APF installed previously and ELS updated it for you, you will be prompted if you want the old port and IP settings copied to the new installation.  Unless you want to start all over again, you should choose yes.  You will still need to tweak some other settings in the configuration file to your liking again, however.
+
+Section 4.8 - Brute Force Detection (BFD)
+BFD is written by the same people that wrote APF.  BFD scans the system log files every few minutes and checks for IPs that have attempted to login to SSH, FTP, IMAP, or other services and failed multiple times.  This helps prevent automated scripts and hackers to gain access to your server by guessing your passwords.  To prevent locking yourself out, you should enter your IP when prompted when running ELS.  If you did not, you can manually enter it in the /usr/local/bfd/ignore.hosts file.
+
+MORE TO COME...
+
+
+Section 5 - What should I do after I run ELS?
+After you run ELS, you need to fine tune several things, the first being Advanced Polices Firewall (APF).
+
+APF is installed in /etc/apf and you should check /etc/apf/conf.apf to ensure that the configuration looks correct.  One thing that ELS attempts to figure out automatically (only if cPanel is installed) is the Ethernet Device (i.e. eth0, eth1, etc.).  If this is not set to the primary ethernet device APF will fail with alot of errors.  If you do not have cPanel installed, this will be set to the default of eth0.  You may need to edit that configuration option as well as which ports you want to have open in your firewall.
+
+If cPanel is installed, a cPanel-freindly configuration will be used, with the default ports already set, however you may wish to add.  The same goes for Plesk Control Panel.  If Plesk is installed, a Plesk-friendly configuration will be used.
+
+Once you save the configuration and start APF (command: service apf restart), you should ensure everything is working properly and you don't get locked out.  After 5 minutes, the APF service will automatically be stopped, just incase you do get locked out.  If you do not get locked out, edit the conf.apf once more and change the DEVM="1" to DEVM="0" and restart APF (service apf restart).  If you do get locked out for those 5 minutes, just patiently wait for APF to be stopped, and figure out what edits you must make to conf.apf.
+
+Once APF configuration is complete, if you opted for MySQL upgrade to 4.1, you should login to WHM and reset your root password to whatever you'd like.  This just makes sure that /root/.my.cnf and the real MySQL root password stay in sync.  Also, if you opted to upgrade to MySQL 4.1, you should run buildapache/easyapache to ensure that PHP makes use of the new MySQL libraries.  Failure to do so may cause some problems with PHP/MySQL websites.
