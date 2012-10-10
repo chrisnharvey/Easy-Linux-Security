@@ -711,7 +711,7 @@ dorootloginemail() {
             echo "  echo 'Time: '\`date\`" >> /root/.bash_profile
             echo "  echo 'User: '\`who | awk '{ print \$1 }'\`" >> /root/.bash_profile
             echo "  echo 'TTY: '\`who | awk '{ print \$2 }'\`" >> /root/.bash_profile
-            echo "  echo 'Source: '\`who | awk '{ print \$6 }' | ${CUT} -d '(' -f 2 | ${CUT} -d ')' -f 1\`" >> /root/.bash_profile
+            echo "  echo 'Source: '\`who | awk '{ print \$5 }' | ${CUT} -d '(' -f 2 | ${CUT} -d ')' -f 1\`" >> /root/.bash_profile
             echo "  echo" >> /root/.bash_profile
             echo "  echo" >> /root/.bash_profile
             echo "  echo 'This email is an alert automatically created by your server telling you that someone, even if it is you, logged into SSH as the root user.  If you or someone you know and trust logged in as root, disregard this email.  If you or someone you know and trust did not login to the server as root, then you may have a hack attempt in progress on your server.'" >> /root/.bash_profile
