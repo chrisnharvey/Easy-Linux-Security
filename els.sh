@@ -1157,6 +1157,11 @@ dobfd() {
    fi
 }
 
+## Install DDoS Deflate
+doddos() {
+   echo "Hello world, this feature is coming soon"
+}
+
 ## Install/Update Libsafe
 dolibsafe() {
    echo
@@ -3331,6 +3336,7 @@ doshowhelp(){
    echo "  --apc               : Install/Update APC (Alternative PHP Cache)"
    echo "  --apf               : Install/Update APF Firewall"
    echo "  --bfd               : Install/Update BFD (Brute Force Detection)"
+   echo "  --ddos              : Install/Update DDoS Deflate (DDoS Protection)"
    echo "  --chkrootkit        : Install/Update CHKROOTKIT"
    echo "  --chkrootkitcron    : Install a CHKROOTKIT cronjob (to run nightly)"
    echo "  --chmodfiles        : Chmod dangerous files to root only"
@@ -3376,6 +3382,7 @@ doshowhelp(){
    echo "  --enablephprg       : Enable PHP register_globals"
    echo "  --removeapf         : Remove APF firewall"
    echo "  --removebfd         : Remove BFD (Brute Force Detection)"
+   echo "  --removeddos        : Remove DDoS Deflate"
    echo "  --rmchkrootkitcron  : Remove a CHKROOTKIT cronjob"
    echo "  --rmrkhuntercron    : Remove a RKHunter cronjob"
    echo "  --undomysqlrenice   : Undo MySQL renice"
@@ -3436,6 +3443,7 @@ case "$1" in
       dochkrootkitcron
       doapf
       dobfd
+      doddos
       dolibsafe
       domytop
       dodisabletelnet
@@ -3526,6 +3534,12 @@ case "$1" in
          adminip
       fi
       dobfd
+   ;;
+   --ddos)
+      if [ "${ADMINIP}" = "" ]; then
+         adminip
+      fi
+      doddos
    ;;
    --libsafe)
       dolibsafe
